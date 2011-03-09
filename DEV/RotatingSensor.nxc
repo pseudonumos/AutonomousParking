@@ -1,0 +1,82 @@
+#define ROTATING_SENSOR_PORT OUT_C
+#define FACING_LEFT 0
+#define FACING_BACK 1
+#define SWEEPING 2
+#define ROTATING -1
+#define ROTATABLE_SENSOR_CONFIG 1    		 // 1 if the is motor is mounted forward, 1 for the opposite
+#define ROTATING_POWER 50     	 				 // power level of the motors for rotating (max: 100)
+
+#define LEFT_ANGLE 0
+#define BACK_ANGLE 90
+#define SUCCESS true
+#define FAILED false
+
+
+#define SENSOR_TURNING_MULTIPLIER 21 	 // based on gear ratios, how to multiple one degree of the motor to get a known rotation of the sensor's angle
+
+
+// Global variables
+int rotatableSensorPosition = FACING_BACK;   // global variable for rotatable sensor's direction; assume the sensor starts out facing to the back
+bool sweep = false;      										 // global variable to use as a flag to tell rotateSensor() to stop sweeping
+
+
+/****************************************************************************************
+bool rotateSensor(int desiredPosition)
+--------------------------------------
+usage: rotates a sensor to a desired position, or makes it constantly sweep.
+parameters:
+	desiredPosition: the desired position of the sensor (can be: FACING_LEFT, FACING_BACK, or SWEEPING)
+modifies: rotatableSensorPosition
+returns: a boolean value indicating success (true), or false otherwise
+note: "sweep" (the global variable described above) is strictly a flag that rotateSensor() will check/read so it knows when to stop; rotateSensor() will not write to it to
+indicate that it has stopped sweeping. It is up to the calling function to reset this flag.
+****************************************************************************************/
+bool rotateSensor(int desiredPosition) {
+		if (desiredPosition == rotatableSensorPosition) return SUCCESS; //trivial case, don't need to do anything
+		
+		// TODO: check to make sure sensor is not turning or sweeping
+		// if it is turning, go on, and hope we can acquire the mutex
+		// if it is sweeping, tell it to stop??
+		
+		//handle sweeping case with recursion
+		// EEEK! NXC doesn't support recursion!
+		if (desiredPosition == SWEEPING) {
+			while (sweep) {
+				 // rotateSensor(FACING_LEFT);
+		 		 // rotateSensor(FACING_BACK);
+				 }
+			 return SUCCESS;
+		 }
+		 
+		 // TODO: implement the rest! (current code below copied from turnWheelsTo() function
+		 /*
+	 // calculate which way we need to turn it and how much
+		int degreesToTurnSensor = ???;
+		int degreesToTurnMotor = 0;
+		int direction = 0;
+		int turningPower = 0;
+		int wheelAngleSnapshot = wheelAngle;
+		if (degreesToTurnWheels > 0)
+			direction = RIGHT;
+			else direction = LEFT;
+			
+		turningPower = TURNING_POWER  * direction * (ROTATABLE_SENSOR_CONFIG);  		 // calculations to ensure the sign is correct based on the direction and car configuration
+		degreesToTurnMotor = STEERING_MULTIPLIER * degreesToTurnWheels * direction;  // translate the wheel degrees into motor degrees
+
+	// get mutex for the motor and lock for the global variables
+	// set global variable to indicate we will be turning the sensor (or, if the variable is already set to SWEEPING, leave it alone
+	// do rotation
+		RotateMotor(STEERING_PORTS, turningPower, degreesToTurnMotor);       	 		 	 // do the turning
+    wheelAngle += degreesToTurnWheels;         // update the wheelAngle variable
+    // release mutex
+    // release lock on global variable
+
+	// return value
+*/
+
+return FAILED;
+}
+
+
+
+

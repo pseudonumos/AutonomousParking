@@ -1,0 +1,22 @@
+sensys.nxc
+
+4 ports correspond to the 4 inputs.
+VAL_US1 or FRONT is value of ultrasonic on port 1, IN_1 or US1_PORT
+VAL_US2 or REAR is value of ultrasonic on port 2, IN_2 or US2_PORT
+VAL_US3 or ROTATE is value of ultrasonic on port 3, IN_3 or US3_PORT
+VAL_GS4 or GYRO is value of ultrasonic on port 4, IN_4 or GYROPORT
+
+USE: FRONT,REAR,ROTATE,GYRO and US1_PORT,US2_PORT,US3_PORT,GYROPORT
+
+Acquire mutex before reading value.
+Mutex_Sensys1
+Mutex_Sensys2
+Mutex_Sensys3
+Mutex_Sensys4
+
+Acqire Display before writing to LCD
+
+Mutex Display
+
+Sensys() is called from main by start Sensys;
+Gyrosys() is called from main by start Gyrosys;

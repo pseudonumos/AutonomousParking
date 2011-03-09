@@ -1,0 +1,243 @@
+#define US1_PORT IN_1
+#define US2_PORT IN_2
+#define US3_PORT IN_3
+//#define GYROPORT IN_4
+#define TOUCHPORT IN_4
+#define FRONT VAL_US1
+#define RIGHT VAL_US2
+#define ROTATE VAL_US3
+#define GYRO VAL_GS4
+#define WAIT_TIME 20
+
+mutex Mutex_Sensys1; //Acquire this mutex before reading value from VAL_US1 or Front_US
+mutex Mutex_Sensys2; //Same
+mutex Mutex_Sensys3; //Same
+mutex Mutex_Sensys4;
+mutex Display;
+
+int VAL_US1;
+int VAL_US2;
+int VAL_US3;
+// int VAL_GS4;
+
+//Touch is true when Touch Sensor Hit something.
+
+bool Touch;
+
+task Sensys();
+
+task Gyrosys();
+
+task Touchsys();
+
+int Med3(int a, int b, int c){
+    Acquire(Mutex_Sensys1);     //Display on screen for testing purposes at the moment
+    /*
+    ClearScreen();
+    TextOut(0,LCD_LINE1,"Med3Begin. Inputs:");
+    NumOut(0,LCD_LINE2,a);
+    NumOut(30,LCD_LINE2,b);
+    NumOut(60,LCD_LINE2,c);
+    Wait(1000);
+    Release(Mutex_Sensys1);
+    */
+    int Arr[3];
+    Arr[0] = a;
+    Arr[1] = b;
+    Arr[2] = c;
+    int i;
+    int min = 0;
+    int max = 0;
+    int med = 0;
+    for (i = 0; i < 3; i++){
+        if (Arr[i] > Arr[max]){
+           max = i;
+        }
+        else if (Arr[i] < Arr[min]){
+           min = i;
+        }
+    }
+    med = 3 - min - max;
+    if (min == max){
+       med = min;
+    }
+    /*
+    Acquire(Mutex_Sensys1);     //Display on screen for testing purposes at the moment
+    ClearScreen();
+    TextOut(0,LCD_LINE1,"Med3End. Output Median:");
+    NumOut(0,LCD_LINE2,Arr[med]);
+    Release(Mutex_Sensys1);
+    Wait(1000);
+    */
+    return Arr[med];
+}
+
+
+/*task main()
+{
+     start Touchsys;
+     start Sensys;
+     //start Gyrosys;
+} */
+
+
+/*
+task Gyrosys()
+{
+ SetSensorHTGyro(GYROPORT);
+ unsigned long prior;
+ unsigned long time;
+ unsigned long current;
+ unsigned long minute;
+ long gyro_err;
+ long gyro_data;
+ long accumulate_data;
+ long gyro_offset;
+
+ // Callibration
+ 
+ Wait(1000);
+ gyro_offset = SensorRaw(GYROPORT);
+
+ int polling_num = 0;
+ prior = CurrentTick()/10;
+ current = CurrentTick()/10;
+
+ while(true)
+ {
+  //Current Time
+  current = CurrentTick()/10;
+
+  //If its 10ms after the last Tick, take reading and accumulate data
+  if ((prior + 1) == current)
+  {
+   polling_num++;
+   gyro_data = SensorRaw(GYROPORT) - gyro_offset;
+   accumulate_data += gyro_data;
+   prior = current;
+  } else if ((prior + 1) != current){
+   prior = current;
+   gyro_err++;
+  }
+
+  //Half a second worth of reading done, update the values
+  if (polling_num == 50)
+  {
+   accumulate_data = accumulate_data/100;
+   Acquire(Mutex_Sensys4);
+   VAL_GS4 += accumulate_data;
+   Release(Mutex_Sensys4);
+   polling_num = 0;
+   accumulate_data = 0;
+  }
+
+  TextOut(0,LCD_LINE5,"g_err");
+  NumOut(0,LCD_LINE6,gyro_err);
+  TextOut(30,LCD_LINE5,"g_data");
+  NumOut(30,LCD_LINE6,gyro_data);
+  TextOut(60,LCD_LINE5,"g_offset");
+  NumOut(60,LCD_LINE6,gyro_offset);
+ }
+}
+*/
+
+
+task Sensys()
+{
+ SetSensorLowspeed(US1_PORT);
+ SetSensorLowspeed(US2_PORT);
+ SetSensorLowspeed(US3_PORT);
+ int Arr_US1[] = {10,10,10};
+ int Arr_US2[] = {0,0,0};
+ int Arr_US3[] = {0,0,0};
+ int median;
+ int temp;
+
+ while(true)
+ {
+  temp = SensorUS(US1_PORT);
+  Arr_US1[2] = Arr_US1[1];
+  Arr_US1[1] = Arr_US1[0];
+  Arr_US1[0] = temp;
+  
+
+  /*
+  Acquire(Mutex_Sensys1);     //Display on screen for testing purposes at the moment
+  ClearScreen();
+  TextOut(0,LCD_LINE1,"sensys begin loop. newest reading:");
+  NumOut(0,LCD_LINE2,temp);
+  Release(Mutex_Sensys1);
+  Wait(1000);
+  */
+  
+  Acquire(Mutex_Sensys1);
+  VAL_US1 = Med3(Arr_US1[0], Arr_US1[1], Arr_US1[2]);
+  Release(Mutex_Sensys1);
+  Wait(WAIT_TIME);
+
+  /*
+
+  Acquire(Mutex_Sensys1);     //Display on screen for testing purposes at the moment
+  ClearScreen();
+  TextOut(0,LCD_LINE1,"LoopEnd");
+  NumOut(0,LCD_LINE2,VAL_US1);
+  Release(Mutex_Sensys1);
+  Wait(1000);
+
+  */
+
+  temp = SensorUS(US2_PORT);
+  Arr_US2[2] = Arr_US2[1];
+  Arr_US2[1] = Arr_US2[0];
+  Arr_US2[0] = temp;
+  
+  Acquire(Mutex_Sensys2);
+  VAL_US2 = Med3(Arr_US2[0], Arr_US2[1], Arr_US2[2]);
+  Release(Mutex_Sensys2);
+  Wait(WAIT_TIME);
+  
+  temp = SensorUS(US3_PORT);
+  Arr_US3[2] = Arr_US3[1];
+  Arr_US3[1] = Arr_US3[0];
+  Arr_US3[0] = temp;
+
+  Acquire(Mutex_Sensys3);
+  VAL_US3 = Med3(Arr_US3[0], Arr_US3[1], Arr_US3[2]);
+  Release(Mutex_Sensys3);
+  Wait(WAIT_TIME);
+  
+  /*
+  Acquire(Mutex_Sensys1);     //Display on screen for testing purposes at the moment
+  ClearScreen();
+  NumOut(0,LCD_LINE1,Front_US);
+  Release(Mutex_Sensys1);
+  */
+  
+  
+  
+ }
+}
+
+task Touchsys()
+{
+  SetSensorTouch(TOUCHPORT);
+  Acquire(Mutex_Sensys4);
+  Touch = false;
+  Release(Mutex_Sensys4);
+  while(true)
+  {
+   //NumOut(60,LCD_LINE6,SENSOR_4);
+   //TextOut(0,LCD_LINE6,SENSOR_4);
+   //ClearScreen();
+   while(SENSOR_4 != 0)
+   {
+    Acquire(Mutex_Sensys4);
+    Touch = true;
+    //TextOut(0,LCD_LINE7,"Touch");
+    Release(Mutex_Sensys4);
+   }
+   Acquire(Mutex_Sensys4);
+   Touch = false;
+   Release(Mutex_Sensys4);
+  }
+}

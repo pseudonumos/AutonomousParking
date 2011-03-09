@@ -1,0 +1,791 @@
+#include "sensys.nxc"
+#include "DrivingControl.nxc"
+
+// main
+    //64
+<<<<<<< .mine
+// Environment Constants
+#define CAR_LENGTH 30
+#define CAR_WIDTH 18
+#define ERROR 3
+#define HEAD_IN_DEPTH 32
+#define HEAD_IN_WIDTH 30
+#define PARALLEL_DEPTH 20
+#define PARALLEL_LENGTH  34
+#define CONCRETE_WIDTH 8
+#define TURNING_RADIUS 4
+=======
+#define CAR_LENGTH 30  //10
+#define CAR_WIDTH 18       //5
+#define ERROR 3           //3
+#define HEAD_IN_DEPTH 30           //20
+#define HEAD_IN_WIDTH 30               //10
+#define PARALLEL_DEPTH 16                  //10
+#define PARALLEL_LENGTH  32                     //15
+#define CONCRETE_WIDTH 8                            //2.5
+#define TURNING_RADIUS 4                                     //4
+>>>>>>> .r89
+#define PI 3.1415
+#define HEAD_IN_PARK 0
+#define PARALLEL_PARK 1
+int drop = 0;
+// Keeps Track of
+bool flag = false;
+task Mario();
+task Mario2();
+
+// STATES
+
+#define LOOKING 0
+#define DETECTING 1
+#define ALIGNMENT 2
+#define PARK 3
+#define STOP 4
+#define RESET 5
+
+
+// What do these do?
+// Parking functions
+void r(bool headOrParallel);
+void p(bool headOrParallel);
+task Mario2(){
+PlayTone(196,100); Wait(150);
+PlayTone(262 ,100); Wait(150);
+PlayTone(330 ,100); Wait(150);
+PlayTone(392 ,100); Wait(150);
+PlayTone(523 ,100); Wait(150);
+PlayTone(659 ,100); Wait(150);
+PlayTone(784 ,300); Wait(350);
+PlayTone(659 ,150); Wait(250);
+
+<<<<<<< .mine
+=======
+PlayTone(208 ,100); Wait(150);
+PlayTone(262 ,100); Wait(150);
+PlayTone(311 ,100); Wait(150);
+PlayTone(415 ,100); Wait(150);
+PlayTone(523 ,100); Wait(150);
+PlayTone(622 ,100); Wait(150);
+PlayTone(831 ,300); Wait(350);
+PlayTone(587 ,150); Wait(250);
+>>>>>>> .r89
+
+<<<<<<< .mine
+// So I got a bit annoyed at it
+task Mario2(){
+PlayTone(196,100); Wait(150);
+PlayTone(262 ,100); Wait(150);
+PlayTone(330 ,100); Wait(150);
+PlayTone(392 ,100); Wait(150);
+PlayTone(523 ,100); Wait(150);
+PlayTone(659 ,100); Wait(150);
+PlayTone(784 ,300); Wait(350);
+PlayTone(659 ,150); Wait(250);
+=======
+PlayTone(233 ,100); Wait(150);
+PlayTone(294 ,100); Wait(150);
+PlayTone(349 ,100); Wait(150);
+PlayTone(466 ,100); Wait(150);
+PlayTone(587 ,100); Wait(150);
+PlayTone(698 ,100); Wait(150);
+PlayTone(932 ,200); Wait(250);
+PlayTone(932 ,80); Wait(250);
+PlayTone(932 ,80); Wait(250);
+PlayTone(932 ,80); Wait(250);
+PlayTone(1047 ,500); Wait(500);
+>>>>>>> .r89
+
+<<<<<<< .mine
+PlayTone(208 ,100); Wait(150);
+PlayTone(262 ,100); Wait(150);
+PlayTone(311 ,100); Wait(150);
+PlayTone(415 ,100); Wait(150);
+PlayTone(523 ,100); Wait(150);
+PlayTone(622 ,100); Wait(150);
+PlayTone(831 ,300); Wait(350);
+PlayTone(587 ,150); Wait(250);
+=======
+}
+task Mario(){
+PlayTone(660 ,100); Wait(150);
+PlayTone(660 ,100); Wait(300);
+>>>>>>> .r89
+PlayTone(233 ,100); Wait(150);
+PlayTone(294 ,100); Wait(150);
+PlayTone(349 ,100); Wait(150);
+PlayTone(466 ,100); Wait(150);
+PlayTone(587 ,100); Wait(150);
+PlayTone(698 ,100); Wait(150);
+PlayTone(932 ,200); Wait(250);
+PlayTone(932 ,80); Wait(250);
+PlayTone(932 ,80); Wait(250);
+PlayTone(932 ,80); Wait(250);
+PlayTone(1047 ,500); Wait(500);
+}
+task Mario(){
+PlayTone(660 ,100); Wait(150);
+PlayTone(660 ,100); Wait(300);
+PlayTone(660 ,100); Wait(300);
+PlayTone(510 ,100); Wait(100);
+PlayTone(660 ,100); Wait(300);
+PlayTone(770 ,100); Wait(550);
+PlayTone(380 ,100); Wait(575);
+PlayTone(510 ,100); Wait(450);
+PlayTone(380 ,100); Wait(400);
+PlayTone(320 ,100); Wait(500);
+PlayTone(440 ,100); Wait(300);
+PlayTone(480 ,80); Wait(330);
+PlayTone(450 ,100); Wait(150);
+PlayTone(430 ,100); Wait(300);
+PlayTone(380 ,100); Wait(200);
+PlayTone(660 ,80); Wait(200);
+PlayTone(760 ,50); Wait(150);
+PlayTone(860 ,100); Wait(300);
+PlayTone(700 ,80); Wait(150);
+PlayTone(760 ,50); Wait(350);
+PlayTone(660 ,80); Wait(300);
+PlayTone(520 ,80); Wait(150);
+PlayTone(580 ,80); Wait(150);
+PlayTone(480 ,80); Wait(500);
+PlayTone(510 ,100); Wait(450);
+PlayTone(380 ,100); Wait(400);
+PlayTone(320 ,100); Wait(500);
+PlayTone(440 ,100); Wait(300);
+PlayTone(480 ,80); Wait(330);
+PlayTone(450 ,100); Wait(150);
+PlayTone(430 ,100); Wait(300);
+PlayTone(380 ,100); Wait(200);
+PlayTone(660 ,80); Wait(200);
+PlayTone(760 ,50); Wait(150);
+PlayTone(860 ,100); Wait(300);
+PlayTone(700 ,80); Wait(150);
+PlayTone(760 ,50); Wait(350);
+PlayTone(660 ,80); Wait(300);
+PlayTone(520 ,80); Wait(150);
+PlayTone(580,80); Wait(150);
+PlayTone(480 ,80); Wait(500);
+PlayTone(500 ,100); Wait(300);
+PlayTone(760,100); Wait(100);
+PlayTone(720 ,100); Wait(150);
+PlayTone(680 ,100); Wait(150);
+PlayTone(620 ,150); Wait(300);
+PlayTone(650 ,150); Wait(300);
+PlayTone(380 ,100); Wait(150);
+PlayTone(430 ,100); Wait(150);
+PlayTone(500 ,100); Wait(300);
+PlayTone(430 ,100); Wait(150);
+PlayTone(500 ,100); Wait(100);
+PlayTone(570 ,100); Wait(220);
+PlayTone(500 ,100); Wait(300);
+PlayTone(760 ,100); Wait(100);
+PlayTone(720 ,100); Wait(150);
+PlayTone(680 ,100); Wait(150);
+PlayTone(620 ,150); Wait(300);
+PlayTone(650 ,200); Wait(300);
+PlayTone(1020 ,80); Wait(300);
+PlayTone(1020 ,80); Wait(150);
+PlayTone(1020, 80); Wait(300);
+PlayTone(380 ,100); Wait(300);
+PlayTone(500 ,100); Wait(300);
+PlayTone(760 ,100); Wait(100);
+PlayTone(720 ,100); Wait(150);
+PlayTone(680 ,100); Wait(150);
+PlayTone(620 ,150); Wait(300);
+PlayTone(650 ,150); Wait(300);
+PlayTone(380 ,100); Wait(150);
+PlayTone(430 ,100); Wait(150);
+PlayTone(500 ,100); Wait(300);
+PlayTone(430 ,100); Wait(150);
+PlayTone(500 ,100); Wait(100);
+PlayTone(570 ,100); Wait(420);
+PlayTone(585 ,100); Wait(450);
+PlayTone(550 ,100); Wait(420);
+PlayTone(500 ,100); Wait(360);
+PlayTone(380,100); Wait(300);
+PlayTone(500 ,100); Wait(300);
+PlayTone(500 ,100); Wait(150);
+PlayTone(500 ,100); Wait(300);
+PlayTone(500 ,100); Wait(300);
+PlayTone(760 ,100); Wait(100);
+PlayTone(720 ,100); Wait(150);
+PlayTone(680 ,100); Wait(150);
+PlayTone(620 ,150); Wait(300);
+PlayTone(650 ,150); Wait(300);
+PlayTone(380 ,100); Wait(150);
+PlayTone(430 ,100); Wait(150);
+PlayTone(500 ,100); Wait(300);
+PlayTone(430 ,100); Wait(150);
+PlayTone(500 ,100); Wait(100);
+PlayTone(570 ,100); Wait(220);
+PlayTone(500 ,100); Wait(300);
+PlayTone(760 ,100); Wait(100);
+PlayTone(720 ,100); Wait(150);
+PlayTone(680,100); Wait(150);
+PlayTone(620 ,150); Wait(300);
+PlayTone(650 ,200); Wait(300);
+PlayTone(1020 ,80); Wait(300);
+PlayTone(1020 ,80); Wait(150);
+PlayTone(1020, 80); Wait(300);
+PlayTone(380,100); Wait(300);
+PlayTone(500 ,100); Wait(300);
+PlayTone(760,100); Wait(100);
+PlayTone(720 ,100); Wait(150);
+PlayTone(680 ,100); Wait(150);
+PlayTone(620 ,150); Wait(300);
+PlayTone(650 ,150); Wait(300);
+PlayTone(380 ,100); Wait(150);
+PlayTone(430 ,100); Wait(150);
+PlayTone(500 ,100); Wait(300);
+PlayTone(430 ,100); Wait(150);
+PlayTone(500 ,100); Wait(100);
+PlayTone(570 ,100); Wait(420);
+PlayTone(585 ,100); Wait(450);
+PlayTone(550 ,100); Wait(420);
+PlayTone(500 ,100); Wait(360);
+PlayTone(380 ,100); Wait(300);
+PlayTone(500 ,100); Wait(300);
+PlayTone(500 ,100); Wait(150);
+PlayTone(500 ,100); Wait(300);
+PlayTone(500 ,60); Wait(150);
+PlayTone(500 ,80); Wait(300);
+PlayTone(500 ,60); Wait(350);
+PlayTone(500 ,80); Wait(150);
+PlayTone(580 ,80); Wait(350);
+PlayTone(660,80); Wait(150);
+PlayTone(500 ,80); Wait(300);
+PlayTone(430 ,80); Wait(150);
+PlayTone(380 ,80); Wait(600);
+PlayTone(500 ,60); Wait(150);
+PlayTone(500 ,80); Wait(300);
+PlayTone(500 ,60); Wait(350);
+PlayTone(500 ,80); Wait(150);
+PlayTone(580 ,80); Wait(150);
+PlayTone(660 ,80); Wait(550);
+PlayTone(870 ,80); Wait(325);
+PlayTone(760 ,80); Wait(600);
+PlayTone(500 ,60); Wait(150);
+PlayTone(500 ,80); Wait(300);
+PlayTone(500 ,60); Wait(350);
+PlayTone(500 ,80); Wait(150);
+PlayTone(580 ,80); Wait(350);
+PlayTone(660 ,80); Wait(150);
+PlayTone(500 ,80); Wait(300);
+PlayTone(430 ,80); Wait(150);
+PlayTone(380 ,80); Wait(600);
+PlayTone(660 ,100); Wait(150);
+PlayTone(660,100); Wait(300);
+PlayTone(660, 100); Wait(300);
+PlayTone(510 ,100); Wait(100);
+PlayTone(660 ,100); Wait(300);
+PlayTone(770 ,100); Wait(550);
+PlayTone(380, 100); Wait(575);
+<<<<<<< .mine
+}
+
+=======
+>>>>>>> .r89
+int global_angle = 0;
+
+// abs_turn. If you want wheels to be *AT* x degrees, just input the angle and the function will figure
+//           the difference between the current angle and the desired angle, and turn that amount
+// angle can be negative or positive
+void abs_turn(int angle)
+{
+  int turn;
+  turn = angle - global_angle;
+  global_angle = angle;
+  turnWheelsTo(turn);
+}
+
+// rel_turn. If you want the wheel to be turned x degrees relative to whatever angle it is in right now, use this.
+// angle can be positive or negative
+void rel_turn(int angle)
+{
+  global_angle += angle;
+  turnWheelsTo(angle);
+}
+
+// ctr_turn returns wheels to original position of 0 degrees.
+void ctr_turn()
+{
+  turnWheelsTo(-global_angle);
+  global_angle = 0;
+}
+
+
+// Alignment for HEAD_IN_PARKING, need to do an S-TURN
+void reverse(int reverseDistance, int distance_remembered) {
+      if (reverseDistance * 4 < (distance_remembered)) {
+        abs_turn(7);
+        drive(-5);
+     } else {
+        abs_turn(-5);
+        drive(-4);
+     }
+
+}
+
+// PARKING
+void park(bool headOrParallel, int parkDistance) {
+     // IF HEAD_IN, TURN WHEELS AND DRIVE IN
+     if (headOrParallel == HEAD_IN_PARK) {
+        abs_turn(-7);
+        drive(5);
+     // IF PARALLEL, DO AN S TURN
+     } else {
+        if (4 * parkDistance <= (PARALLEL_LENGTH + PI*TURNING_RADIUS + ERROR)) {
+           abs_turn(-7);
+           drive(-5);
+        } else {
+           abs_turn(7);
+           drive(-5);
+        }
+     }
+}
+
+void wiggle(int distance, bool state, int RIGHT) {
+     if(state==PARALLEL_PARK) {
+         //Acquire(Mutex_Sensys4);
+         if(Touch){
+              //Release(Mutex_Sensys4);
+              flag = false;
+              abs_turn(0);
+              drive((1000 * distance/2)/1000);
+<<<<<<< .mine
+              abs_turn(-8);
+=======
+              turnWheelsTo(-8);
+              drive(-(400 * distance/2)/1000);
+              turnWheelsTo(8);
+              turnWheelsTo(8);
+>>>>>>> .r89
+              drive(-(405 * distance/2)/1000);
+              abs_turn(8);
+              drive(-(405 * distance/2)/1000);
+         } else {
+              drive(-1);
+              flag = true;
+         }
+     } else {
+         if(2 * RIGHT <  distance - ERROR){
+              drive(-CAR_LENGTH);
+              abs_turn(4);
+              drive((3*CAR_LENGTH)/10);
+              abs_turn(0);
+              drive((3*CAR_LENGTH)/10);
+              abs_turn(-5);
+              drive((3*CAR_LENGTH)/10);
+              abs_turn(0);
+         } else if(2 * RIGHT > distance + ERROR){
+              drive(-CAR_LENGTH);
+              abs_turn(-4);
+              drive((3*CAR_LENGTH)/10);
+              abs_turn(0);
+              drive((3*CAR_LENGTH)/10);
+              abs_turn(5);
+              drive((3*CAR_LENGTH)/10);
+              abs_turn(0);
+         } else{
+              drive(1);
+         }
+     }
+}
+
+task main();
+
+// @TODO: Calibrate distances
+// @TODO: Implement reverse and park function
+// @TODO: Cap the turning (software limits)
+// @TODO: check on different surfaces
+
+task main() {
+
+     // start other tasks for low level control
+     SetSensorLowspeed(US1_PORT);
+     SetSensorLowspeed(US2_PORT);
+     SetSensorTouch(TOUCHPORT);
+     SetSensorSound(SOUNDPORT);
+     //Wait(3000);
+
+     start Sensys;
+     InitBase();
+     start Touchsys;
+     start Mario;
+
+     Wait(2000);
+     
+     // default state
+     int state = LOOKING;
+
+     // global variables keeping state attributes
+     int distance_remembered = 0;
+     int distance_reversing = 0;
+     int park_distance = 0;
+     bool isParallel = HEAD_IN_PARK;
+     bool isHalfReversing = 0;
+     int drop = 0;
+
+     int count = 0;
+     
+     PlayTone(1047, 300);
+     Wait(2000);
+
+     while (true) {
+
+           // Initial sensor values default to 0, don't want to enter
+           // state RESET right away
+           count++;
+           if (state == RESET) break;
+
+           // print sensors
+           ClearScreen();
+           TextOut(0,LCD_LINE1,"front:");
+           NumOut(0,LCD_LINE2,FRONT);
+
+           TextOut(30,LCD_LINE1,"right:");
+           NumOut(30,LCD_LINE2,RIGHT);
+
+           // print current State
+           TextOut(0, LCD_LINE3, "state: ");
+           NumOut(0, LCD_LINE4, state);
+           
+           TextOut(30, LCD_LINE3, "headorparallel:");
+           NumOut(30, LCD_LINE4, isParallel);
+           
+           TextOut(0 ,LCD_LINE5, "dist:");
+           NumOut(0, LCD_LINE6, distance_remembered);
+           
+           TextOut(30, LCD_LINE5, "BASE:");
+           NumOut(30, LCD_LINE6, InitialBase);
+
+	         // state evolution
+	         // AUTOMATIC RESET (automatic stop)
+	         if ((RIGHT < 3 || FRONT < 5) && (count > 10) && (state!=STOP && state!=PARK)) {
+              PlayTone(1047, 300);
+              state = RESET;
+           }
+
+           // state machine for parking
+           switch(state) {
+<<<<<<< .mine
+               case RESET:
+                   safe = true;
+                   break;
+                   // STOP state assumes you've finished parking
+                   // Must check to see if you have stopped correctly
+                   case STOP:
+                       // If you are STOPPED incorrectly, wiggle until you are
+                       // PARALLEL: within 10 cm to right curb
+                       // HEAD-IN: within 10 cm to front curb
+                       if((RIGHT > 8 && isParallel == PARALLEL_PARK) || (FRONT > 8 && isParallel == HEAD_IN_PARK) ){
+                           wiggle(distance_remembered,isParallel,RIGHT);
+=======
+                 case RESET:
+			                // stop
+                      safe = true;
+                      break;
+                 case STOP:
+                      // stop
+                       if((s_r > 10 && isParallel == PARALLEL_PARK) || (s_f > 10 && isParallel == HEAD_IN_PARK) ){
+                         // if(flag){break;}
+                          wiggle(distance_remembered,isParallel,s_r);
+>>>>>>> .r89
+                       } else {
+<<<<<<< .mine
+                           // Play the Finish Song
+                           if (RIGHT <= 8) {
+                               abs_turn(0);
+                               start Mario2;
+                           // Try to get as close to the curb as possible
+                           } else {
+                               if (FRONT <= 8) {
+                                  abs_turn(0);
+                                  start Mario2;
+                               } else {
+                                 drive(1);
+                               }
+                           }
+=======
+                          if (s_f <= 10 || s_r <= 10) {
+                             start Mario2;
+                          } else {
+                            drive(1);
+                          }
+>>>>>>> .r89
+                       }
+<<<<<<< .mine
+                       break;
+                   case LOOKING:
+                       // If you are misaligned (too far to the left)
+                       if (RIGHT >= InitialBase + ERROR) {
+                             // if there's a jump larger than parallel_depth you are in head_in)
+                             if (RIGHT > InitialBase + PARALLEL_DEPTH + ERROR) {
+                                 isParallel = HEAD_IN_PARK;
+                                 Wait(250);
+                                 drop = RIGHT;
+                                 state = DETECTING;
+                             } else if (RIGHT > InitialBase + PARALLEL_DEPTH - ERROR) {
+                                 isParallel = PARALLEL_PARK;
+                                 Wait(250);
+                                 drop = RIGHT;
+                                 state = DETECTING;
+                             } else {
+                                 //corrective steering to the right
+                                 abs_turn(-2);
+                                 drive(5);
+                                 abs_turn(0);
+                                 Wait(100);
+                                 InitBase();
+                             }
+                             /*
+                             if(RIGHT >= InitialBase + PARALLEL_DEPTH + ERROR){
+                                     isParallel = HEAD_IN_PARK;
+                                     drop = RIGHT;
+                                     state = DETECTING;
+                             // otherwise if you are less than parallel_depth you are misaligned
+                             } else if(RIGHT <= InitialBase + PARALLEL_DEPTH - ERROR){
+                                     //corrective steering to the right
+                                     abs_turn(-2);
+                                     drive(5);
+                                     abs_turn(0);
+                                     Wait(100);
+                                     InitBase();
+                             // else if you are around the parallel_depth, then you should do parallel parking
+                             } else {
+                                   isParallel = PARALLEL_PARK;
+                                   drop = RIGHT;
+                                   state = DETECTING;
+                             }
+                             */
+                     // If you are misaligned (too far to the right)
+                     } else if(RIGHT <= InitialBase - ERROR){
+                           // corrective steering to the left
+                           abs_turn(2);
+                           drive(5);
+                           abs_turn(0);
+                           Wait(100);
+                           InitBase();
+                     } else {
+                           drive(5);
+                     }
+                     break;
+=======
+                      break;
+                 case LOOKING:
+                      if (s_r >= InitialBase + ERROR) {
+                              if(s_r >= InitialBase + PARALLEL_DEPTH + ERROR){
+                                     isParallel = HEAD_IN_PARK;
+                                     Wait(250);
+                                     drop = s_r;
+                                     state = DETECTING;
+                                     //head in
+                                     }
+                             else if(s_r <= InitialBase + PARALLEL_DEPTH - ERROR){
+                                     turnWheelsTo(-2);
+                                     drive(5);
+                                     turnWheelsTo(2);
+                                     InitBase();
+                                     //corrective
+                                     }
+                              else{
+                                   isParallel = PARALLEL_PARK;
+                                   Wait(250);
+                                   drop = s_r;
+                                   state = DETECTING;
+                              //parallel
+                                  }
+
+                     } else if(s_r <= InitialBase - ERROR){
+                           turnWheelsTo(2);
+                           drive(5);
+                           turnWheelsTo(-2);
+                           InitBase();
+                           //corrective
+                           }
+                      else{
+                           drive(5);
+                           }
+                      break;
+
+                    /*     isParallel = PARALLEL_PARK;
+                         state = DETECTING;
+                      } else if ((s_r <= HEAD_IN_DEPTH + ERROR) && (s_r >= PARALLEL_DEPTH + ERROR)){
+                         isParallel = HEAD_IN_PARK;
+                         state = DETECTING;
+                      } else {
+                        drive(5);
+                      }
+                      break;*/
+>>>>>>> .r89
+                 case DETECTING:
+                      // HEAD_IN_PARKING
+<<<<<<< .mine
+                      // Traveling A LARGE ENOUGH DISTANCE, SPACE DETECTED
+                      if (distance_remembered >= HEAD_IN_WIDTH && (isParallel == HEAD_IN_PARK)) {
+=======
+                      if (distance_remembered >= HEAD_IN_WIDTH && (isParallel == HEAD_IN_PARK)) {
+>>>>>>> .r89
+                         // stop
+                         //distance_remembered = 0;
+                         state = ALIGNMENT;
+<<<<<<< .mine
+                      // If the right sensor is less than the initial (an obstacle in the way, go back to looking)
+                      // ask tyler about this line below
+                      } else if ((RIGHT <= (InitialBase  + HEAD_IN_DEPTH - 2*ERROR)) && (isParallel == HEAD_IN_PARK)) {
+=======
+                      } else if ((s_r < (InitialBase + ERROR)) && (isParallel == HEAD_IN_PARK)) {
+>>>>>>> .r89
+                         // stop
+                         distance_remembered = 0;
+                         state = LOOKING;
+<<<<<<< .mine
+                      // PARALLEL_PARKING
+                      // Traveling A LARGE ENOUGH DISTANCE, SPACE DETECTED
+                      } else if ((distance_remembered >= PARALLEL_LENGTH) && (isParallel == PARALLEL_PARK)) {
+=======
+                      } else if ((distance_remembered >= PARALLEL_LENGTH) && (isParallel == PARALLEL_PARK)) {
+>>>>>>> .r89
+                         // stop
+                         //distance_remembered = 0;
+                         state = ALIGNMENT;
+<<<<<<< .mine
+                      // If the right sensor is less than the initial (an obstacle in the way, go back to looking)
+                      // ask tyler about this line below
+                      } else if ((RIGHT <= InitialBase  + PARALLEL_DEPTH - 2*ERROR) && (isParallel == PARALLEL_PARK)) {
+=======
+                      } else if ((s_r <= InitialBase + PARALLEL_DEPTH - ERROR) && (isParallel == PARALLEL_PARK)) {
+>>>>>>> .r89
+                         // stop
+                         distance_remembered = 0;
+                         state = LOOKING;
+<<<<<<< .mine
+                      // corrective steering
+                      } else if((RIGHT <= drop + ERROR) && (RIGHT > drop)){
+                         abs_turn(-2);
+                         drive(2);
+                         abs_turn(0);
+                         distance_remembered+=2;
+                      } else if((RIGHT >= drop - ERROR) && (RIGHT < drop)){
+                         abs_turn(2);
+                         drive(2);
+                         abs_turn(0);
+                         distance_remembered += 2;
+=======
+                      } else if((s_r <= drop + ERROR) && (s_r > drop)){
+                         turnWheelsTo(-2);
+                         drive(2);
+                         turnWheelsTo(2);
+                         distance_remembered+=2;
+                      } else if((s_r >= drop - ERROR) && (s_r < drop)){
+                         turnWheelsTo(2);
+                         drive(2);
+                         turnWheelsTo(-2);
+                         distance_remembered+=2;
+>>>>>>> .r89
+                      } else {
+                          if (RIGHT < drop - ERROR) {
+                              drop = RIGHT;
+                          }
+                          drive(2);
+                          distance_remembered += 2;
+                      }
+			                break;
+                 case ALIGNMENT:
+                      // IF YOU'VE ALIGNED ENOUGH, I.E. REVERSE AFTER S-TURN, GO INTO PARK
+                      if (2 * distance_reversing >= (distance_remembered + ERROR) && (isParallel == HEAD_IN_PARK)) {
+                          // stop
+                          abs_turn(0);
+                          drive((-1 * ERROR));
+                          distance_reversing = 0;
+                          state = PARK;
+                      // IF IN PARALLEL, DO CORRECTIVE STERRING UNTIL YOU'RE PARALLEL (I.E. DRIVE FORWARD BEFORE YOU PARK)
+                      } else if (isParallel == PARALLEL_PARK) {      //Wont work if theres something parked in front yet.well maybe
+                          // distance_reversing = 0;
+                          int drivedist = CAR_LENGTH - 4;
+                          while(drivedist > 0){
+                              if(RIGHT < drop - ERROR){
+                                  Wait(250);
+                                  drop = RIGHT;
+                              } else if ((RIGHT <= drop + ERROR) && (RIGHT > drop)){
+                                  abs_turn(-2);
+                                  drive(2);
+                                  abs_turn(0);
+                                  drivedist-=2;
+                                  continue;
+                              } else if((RIGHT >= drop - ERROR) && (RIGHT < drop)){
+                                  abs_turn(2);
+                                  drive(2);
+                                  abs_turn(0);
+                                  drivedist-=2;
+                                  continue;
+                              } else {
+                                  drive(2);
+                                  drivedist-=2;
+                              }
+                         }
+                         state = PARK;
+<<<<<<< .mine
+                      // HEAD_IN_PARK => GO INTO S-TURN
+=======
+                      } else if (isParallel == PARALLEL_PARK) {      //Wont work if theres something parked in front yet.well maybe
+                        // distance_reversing = 0;
+                         int drivedist = CAR_LENGTH - 4;
+                         while(drivedist > 0){
+                          if(s_r < drop - ERROR){
+                          Wait(250);
+                          drop = s_r;
+                          }
+                          else if((s_r <= drop + ERROR) && (s_r > drop)){
+                          turnWheelsTo(-2);
+                          drive(2);
+                          turnWheelsTo(2);
+                          drivedist-=2;
+                          continue;
+                          } else if((s_r >= drop - ERROR) && (s_r < drop)){
+                             turnWheelsTo(2);
+                             drive(2);
+                             turnWheelsTo(-2);
+                             drivedist-=2;
+                             continue;
+                            }
+                          else{
+                           drive(2);
+                           drivedist-=2;
+                           }
+                         }
+                         //sensor offset
+                         state = PARK;
+>>>>>>> .r89
+                      } else {
+                         reverse(distance_reversing,distance_remembered);
+                         distance_reversing += 2;
+                      }
+                      break;
+                 case PARK:
+                      // HEAD_IN_PARK => IF YOU'VE RIGHT TURNED ENOUGH, GO INTO STOP, WIGGLE
+                      if ((park_distance >= (HEAD_IN_DEPTH + (PI*TURNING_RADIUS/2)) - 2 * ERROR) && (isParallel == HEAD_IN_PARK)) {
+                         abs_turn(0);
+                         PlayTone(1047, 300);
+                         state = STOP;
+                      // PARALLEL_PARK => IF YOU'VE S-TURNED ENOUGH, GO INTO STOP, WIGGLE
+                      } else if((2 * park_distance >= (PARALLEL_LENGTH + PI*TURNING_RADIUS/2)) && (isParallel == PARALLEL_PARK)) {
+                         // stop
+                         // play mario
+                         abs_turn(0);
+                         PlayTone(1047, 300);
+                         state = STOP;
+                      // PARK MOTION: RIGHT TURN OR S-TURN DEPENDING ON WHAT TYPE OF PARKING.
+                      } else {
+                         park(isParallel, park_distance);
+                         if (isParallel == PARALLEL_PARK) {
+                            park_distance += 2;
+                         } else {
+                            park_distance += 3;
+                         }
+                      }
+			                break;
+          }
+   	}
+}
+
+

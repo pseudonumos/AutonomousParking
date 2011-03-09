@@ -1,0 +1,222 @@
+
+/* for driving */
+#define MOTOR_PORTS OUT_A
+#define DRIVING_POWER 50     	 // power level of the motors for driving (max: 100)
+#define MOTOR_CONFIG 1    		 // -1 for true forward, 1 for reverse (forward = backwards)
+#define ENGINE_MULTIPLIER 21 	 // based on car mechanics, how to multiple one degree of the servo to get a known distance in centimeters
+#define DRIVING_SAFETY_INCREMENT 10 	 // increment within safety loops, the smaller the increment, the more opportunity for "interrupts"
+#define ODOMETER_REVERSE     true     // if true, the odometer will decrease when the car drives in reverse
+#define FORWARD 1
+#define REVERSE (-1)
+
+/* for steering */
+#define STEERING_PORTS OUT_B
+#define TURNING_POWER 50      // power level of the motor for turning (max: 100)
+#define STEERING_CONFIG 1    	// 1 for direct control; -1 for the opposite (e.g. right -> positive turn angle, but turning motor "forward" = left)
+#define STEERING_MULTIPLIER 1 // based on car mechanics, how to multiple one degree of the servo to get a known distance in wheel degrees
+#define STEERING_PID_P 40     // proportional part of steering PID
+#define STEERING_PID_I 40			// integrative part of steering PID
+#define STEERING_PID_D 90			// derivative part of steering PID
+#define RIGHT 1
+#define LEFT (-1)
+
+/* misc */
+#define SUCCESS true
+#define FAILED false
+#define TONE_MIN 220
+#define TONE_MAX 8372
+#define ERR_FREQ 220        // error tone = low A
+#define AFF_FREQ 1047       // affirmative tone = middle-ish C
+#define TONE_DUR 300
+#define US_MIN 0
+#define US_MAX 255
+
+
+//Global variables
+int safe = true;                 // lag used to "interrupt" low-level driving functions
+int odometer = 0;                // keeps track of total distance traveled by the car
+int wheelAngle = 0;          		 // keeps track of current absolute wheel angle of the front wheels
+int tractionCoefficient = 1;  	 // will be used in the next iteration to account for slippage (bad traction)
+
+/*****Function Prototypes******/
+
+//Driving functions
+bool drive(int distance);
+bool turnWheelsTo(int desiredWheelAngle);
+
+//To be implemented later
+bool driveAndTurn(int distance, int endWheelAngle);    // drive a specific distance while linearly changing the wheel angle to endWheelAngle
+
+//Helper functions
+void playResult(bool testResult);
+
+//Misc test/diagnostic functions
+void playUSReading(int port);
+
+/****************************************************************************************
+main()
+------------------------
+just test the driving functions for now
+****************************************************************************************/
+/*
+task main() {
+
+		bool result = SUCCESS;      // play SUCCESS tone
+		playResult(result);
+		Wait(1000);
+		result = FAILED;	 					// play FAILED tone
+		playResult(result);
+		Wait(2000);
+		
+		
+		// test driving forward
+		result = drive(100);
+		playResult(result);
+		Wait(1000);
+
+		// test driving backward
+		result = drive(-10);
+		playResult(result);
+		Wait (1000);
+
+		// try to "interrupt", though I'm not sure if the next two lines will be concurrent...
+		// (sometimes when I try to play two tones, the second call to play a tone cuts off the first)
+		result = drive(-20);
+		safe = false;
+		playResult(result);
+		Wait (1000);
+} //main
+*/
+
+/****************************************************************************************
+bool drive(int distance)
+------------------------
+*usage: drives the car a set distance (does not modify or care about wheel angle)
+*parameters:
+	distance: the amount to drive (in centimeters); positive value for forward, negative for reverse
+*modifies: odometer
+*returns: a boolean value indicating success (true), or false otherwise
+****************************************************************************************/
+bool drive(distance) {
+		if (distance == 0) return SUCCESS; // trivial case, don't need to do anything
+
+		int odometerSnapshot = odometer;   // create and initialize local variables
+		int degreesToDrive = 0;
+		int direction = 0;
+		int drivingPower = 0;
+		int absDistance = 0;
+
+		if (distance > 0)
+			direction = FORWARD;
+			else direction = REVERSE;
+		absDistance = distance * direction;
+		drivingPower = DRIVING_POWER  * direction * (MOTOR_CONFIG);  //c alculations to ensure the sign is correct based on the direction and car configuration
+
+
+	 while ((safe) && (absDistance > 0)) {
+			if (absDistance > DRIVING_SAFETY_INCREMENT) {
+				degreesToDrive = ENGINE_MULTIPLIER * DRIVING_SAFETY_INCREMENT * tractionCoefficient;  // break distance up into smaller parts for safety
+				RotateMotorEx(MOTOR_PORTS, drivingPower, degreesToDrive, 0, false, false); // last parameter sets car to "float" the motor rather than braking abruptly
+				absDistance -= DRIVING_SAFETY_INCREMENT;
+				if(ODOMETER_REVERSE) odometer -= DRIVING_SAFETY_INCREMENT;
+				  else odometer += DRIVING_SAFETY_INCREMENT;
+			} else {
+			degreesToDrive = ENGINE_MULTIPLIER * absDistance *tractionCoefficient;  		 // distance (remaining) is smaller than a safety increment
+				RotateMotor(MOTOR_PORTS, drivingPower, degreesToDrive);
+				if(ODOMETER_REVERSE) odometer -= absDistance;
+				  else odometer += absDistance;
+		    absDistance -= absDistance;
+			}
+	 } //while
+
+	 if (absDistance > 0)                  // after we leave the safety loop, check if we drove as far as we're supposed to
+			 return FAILED; 									 // if not, the 'safe' flag must have been raised
+			 else if (odometer != (odometerSnapshot + (distance * direction)))
+			 			return FAILED; 							 // sanity check, the safe flag might not have been raised, but did something else happen?
+			 else return SUCCESS;
+
+} // drive() function
+
+
+/****************************************************************************************
+bool turnWheelsTo(int desiredWheelAngle)
+---------------------------------------
+*usage: turns the wheel to an absolute wheel angle (where 0 is center/straight, and right and left are defined by #define constants above)
+*parameters:
+	desiredWheelAngle: the desired wheel angle in degrees.
+*modifies: wheelAngle
+*returns: a boolean value indicating success (true), or false otherwise
+****************************************************************************************/
+bool turnWheelsTo(desiredWheelAngle) {
+	if (desiredWheelAngle == wheelAngle) return SUCCESS; // trivial case, don't need to do anything
+
+		int degreesToTurnWheels = desiredWheelAngle - wheelAngle;
+		int degreesToTurnMotor = 0;
+		int direction = 0;
+		int turningPower = 0;
+		int wheelAngleSnapshot = wheelAngle;
+
+		if (degreesToTurnWheels > 0)
+			direction = RIGHT;
+			else direction = LEFT;
+		turningPower = TURNING_POWER  * direction * (STEERING_CONFIG);  // calculations to ensure the sign is correct based on the direction and car configuration
+		degreesToTurnMotor = STEERING_MULTIPLIER * degreesToTurnWheels * direction; // translate the wheel degrees into motor degrees; always positive
+																																	 // direction of the turning handled the sign of the turningPower, not the degreesToTurnMotor
+		
+		//RotateMotorPID(STEERING_PORTS, turningPower, degreesToTurnMotor, STEERING_PID_P, STEERING_PID_I, STEERING_PID_D);       // do the turning
+		RotateMotorEx(STEERING_PORTS, turningPower, degreesToTurnMotor, 0, false, false);             //do turning: non-PID version
+	  wheelAngle += degreesToTurnWheels;         // update the wheelAngle variable
+
+		 if (wheelAngle != (wheelAngleSnapshot + (degreesToTurnWheels * direction)))
+		 		return FAILED; // sanity check: did something happen?
+			 else return SUCCESS;
+
+} // turnWheelsTo() function
+
+
+/****************************************************************************************
+bool driveAndTurn(int distance, int endWheelAngle);
+---------------------------------------------------
+*usage: drive a specific distance while linearly changing the (absolute) wheel angle to endWheelAngle (in degrees)
+*parameters:
+	distance: the total distance to drive (in centimeters)
+	endWheelAngle: the desired wheel angle (in degress) desired at the end of the distance driven
+*modifies: odometer, wheelAngle
+*returns: a boolean value indicating success (true), or false otherwise
+****************************************************************************************/
+bool driveAndTurn(distance, endWheelAngle) {
+return false;
+} //driveAndTurn() function
+
+
+
+
+void playResult(testResult) {
+	if (testResult == SUCCESS) {
+		 PlayTone(AFF_FREQ, TONE_DUR);
+		 } else {
+		 PlayTone(ERR_FREQ, TONE_DUR);
+		 }
+}
+
+void playUSReading(port) {
+	int reading = 0;
+	int toneFreq = 0;
+	int duration = 100;
+	SetSensorLowspeed(port);
+	while (true) {
+		reading = SensorUS(port);
+		if ((reading == US_MIN) || (reading == US_MAX)) {
+		 PlayTone(ERR_FREQ, duration);
+		 //Wait(duration);
+		 } else {
+		 	 toneFreq = (reading + 250) * 2;
+		 	 PlayTone(toneFreq, duration);
+		 	 //Wait(duration);
+		 	 }
+	 }
+}
+
+
+
+

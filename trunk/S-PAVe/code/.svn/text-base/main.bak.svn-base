@@ -1,0 +1,635 @@
+#include "sensys.nxc"
+#include "DrivingControl.nxc"
+
+// main
+    //64
+#define CAR_LENGTH 30  //10
+#define CAR_WIDTH 18       //5
+#define ERROR 3           //3
+#define HEAD_IN_DEPTH 50           //20
+#define HEAD_IN_WIDTH 30               //10
+#define PARALLEL_DEPTH 29                  //10
+#define PARALLEL_LENGTH  32                     //15
+#define CONCRETE_WIDTH 8                            //2.5
+#define TURNING_RADIUS 4                                     //4
+#define PI 3.1415
+#define HEAD_IN_PARK 0
+#define PARALLEL_PARK 1
+
+bool flag = false;
+task Mario();
+
+
+// STATES
+
+#define LOOKING 0
+#define DETECTING 1
+#define ALIGNMENT 2
+#define PARK 3
+#define STOP 4
+#define RESET 5
+
+// Parking functions
+void r(bool headOrParallel);
+void p(bool headOrParallel);
+
+task Mario(){
+
+PlayTone(660 ,100); Wait(150);
+
+PlayTone(660 ,100); Wait(300);
+
+PlayTone(660 ,100); Wait(300);
+
+PlayTone(510 ,100); Wait(100);
+
+PlayTone(660 ,100); Wait(300);
+
+PlayTone(770 ,100); Wait(550);
+
+PlayTone(380 ,100); Wait(575);
+
+PlayTone(510 ,100); Wait(450);
+
+PlayTone(380 ,100); Wait(400);
+
+PlayTone(320 ,100); Wait(500);
+
+PlayTone(440 ,100); Wait(300);
+
+PlayTone(480 ,80); Wait(330);
+
+PlayTone(450 ,100); Wait(150);
+
+PlayTone(430 ,100); Wait(300);
+
+PlayTone(380 ,100); Wait(200);
+
+PlayTone(660 ,80); Wait(200);
+
+PlayTone(760 ,50); Wait(150);
+
+PlayTone(860 ,100); Wait(300);
+
+PlayTone(700 ,80); Wait(150);
+
+PlayTone(760 ,50); Wait(350);
+
+PlayTone(660 ,80); Wait(300);
+
+PlayTone(520 ,80); Wait(150);
+
+PlayTone(580 ,80); Wait(150);
+
+PlayTone(480 ,80); Wait(500);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PlayTone(510 ,100); Wait(450);
+
+PlayTone(380 ,100); Wait(400);
+
+PlayTone(320 ,100); Wait(500);
+
+PlayTone(440 ,100); Wait(300);
+
+PlayTone(480 ,80); Wait(330);
+
+PlayTone(450 ,100); Wait(150);
+
+PlayTone(430 ,100); Wait(300);
+
+PlayTone(380 ,100); Wait(200);
+
+PlayTone(660 ,80); Wait(200);
+
+PlayTone(760 ,50); Wait(150);
+
+PlayTone(860 ,100); Wait(300);
+
+PlayTone(700 ,80); Wait(150);
+
+PlayTone(760 ,50); Wait(350);
+
+PlayTone(660 ,80); Wait(300);
+
+PlayTone(520 ,80); Wait(150);
+
+PlayTone(580,80); Wait(150);
+
+PlayTone(480 ,80); Wait(500);
+
+PlayTone(500 ,100); Wait(300);
+
+PlayTone(760,100); Wait(100);
+
+PlayTone(720 ,100); Wait(150);
+
+PlayTone(680 ,100); Wait(150);
+
+PlayTone(620 ,150); Wait(300);
+
+PlayTone(650 ,150); Wait(300);
+
+PlayTone(380 ,100); Wait(150);
+
+PlayTone(430 ,100); Wait(150);
+
+PlayTone(500 ,100); Wait(300);
+
+PlayTone(430 ,100); Wait(150);
+
+PlayTone(500 ,100); Wait(100);
+
+PlayTone(570 ,100); Wait(220);
+
+PlayTone(500 ,100); Wait(300);
+
+PlayTone(760 ,100); Wait(100);
+
+PlayTone(720 ,100); Wait(150);
+
+PlayTone(680 ,100); Wait(150);
+
+PlayTone(620 ,150); Wait(300);
+
+PlayTone(650 ,200); Wait(300);
+
+PlayTone(1020 ,80); Wait(300);
+
+PlayTone(1020 ,80); Wait(150);
+
+PlayTone(1020, 80); Wait(300);
+
+PlayTone(380 ,100); Wait(300);
+
+PlayTone(500 ,100); Wait(300);
+
+PlayTone(760 ,100); Wait(100);
+
+PlayTone(720 ,100); Wait(150);
+
+PlayTone(680 ,100); Wait(150);
+
+PlayTone(620 ,150); Wait(300);
+
+PlayTone(650 ,150); Wait(300);
+
+PlayTone(380 ,100); Wait(150);
+
+PlayTone(430 ,100); Wait(150);
+
+PlayTone(500 ,100); Wait(300);
+
+PlayTone(430 ,100); Wait(150);
+
+PlayTone(500 ,100); Wait(100);
+
+PlayTone(570 ,100); Wait(420);
+
+PlayTone(585 ,100); Wait(450);
+
+PlayTone(550 ,100); Wait(420);
+
+PlayTone(500 ,100); Wait(360);
+
+PlayTone(380,100); Wait(300);
+
+PlayTone(500 ,100); Wait(300);
+
+PlayTone(500 ,100); Wait(150);
+
+PlayTone(500 ,100); Wait(300);
+
+PlayTone(500 ,100); Wait(300);
+
+PlayTone(760 ,100); Wait(100);
+
+PlayTone(720 ,100); Wait(150);
+
+PlayTone(680 ,100); Wait(150);
+
+PlayTone(620 ,150); Wait(300);
+
+PlayTone(650 ,150); Wait(300);
+
+PlayTone(380 ,100); Wait(150);
+
+PlayTone(430 ,100); Wait(150);
+
+PlayTone(500 ,100); Wait(300);
+
+PlayTone(430 ,100); Wait(150);
+
+PlayTone(500 ,100); Wait(100);
+
+PlayTone(570 ,100); Wait(220);
+
+PlayTone(500 ,100); Wait(300);
+
+PlayTone(760 ,100); Wait(100);
+
+PlayTone(720 ,100); Wait(150);
+
+PlayTone(680,100); Wait(150);
+
+PlayTone(620 ,150); Wait(300);
+
+PlayTone(650 ,200); Wait(300);
+
+PlayTone(1020 ,80); Wait(300);
+
+PlayTone(1020 ,80); Wait(150);
+
+PlayTone(1020, 80); Wait(300);
+
+PlayTone(380,100); Wait(300);
+
+PlayTone(500 ,100); Wait(300);
+
+PlayTone(760,100); Wait(100);
+
+PlayTone(720 ,100); Wait(150);
+
+PlayTone(680 ,100); Wait(150);
+
+PlayTone(620 ,150); Wait(300);
+
+PlayTone(650 ,150); Wait(300);
+
+PlayTone(380 ,100); Wait(150);
+
+PlayTone(430 ,100); Wait(150);
+
+PlayTone(500 ,100); Wait(300);
+
+PlayTone(430 ,100); Wait(150);
+
+PlayTone(500 ,100); Wait(100);
+
+PlayTone(570 ,100); Wait(420);
+
+PlayTone(585 ,100); Wait(450);
+
+PlayTone(550 ,100); Wait(420);
+
+PlayTone(500 ,100); Wait(360);
+
+PlayTone(380 ,100); Wait(300);
+
+PlayTone(500 ,100); Wait(300);
+
+PlayTone(500 ,100); Wait(150);
+
+PlayTone(500 ,100); Wait(300);
+
+PlayTone(500 ,60); Wait(150);
+
+PlayTone(500 ,80); Wait(300);
+
+PlayTone(500 ,60); Wait(350);
+
+PlayTone(500 ,80); Wait(150);
+
+PlayTone(580 ,80); Wait(350);
+
+PlayTone(660,80); Wait(150);
+
+PlayTone(500 ,80); Wait(300);
+
+PlayTone(430 ,80); Wait(150);
+
+PlayTone(380 ,80); Wait(600);
+
+PlayTone(500 ,60); Wait(150);
+
+PlayTone(500 ,80); Wait(300);
+
+PlayTone(500 ,60); Wait(350);
+
+PlayTone(500 ,80); Wait(150);
+
+PlayTone(580 ,80); Wait(150);
+
+PlayTone(660 ,80); Wait(550);
+
+PlayTone(870 ,80); Wait(325);
+
+PlayTone(760 ,80); Wait(600);
+
+PlayTone(500 ,60); Wait(150);
+
+PlayTone(500 ,80); Wait(300);
+
+PlayTone(500 ,60); Wait(350);
+
+PlayTone(500 ,80); Wait(150);
+
+PlayTone(580 ,80); Wait(350);
+
+PlayTone(660 ,80); Wait(150);
+
+PlayTone(500 ,80); Wait(300);
+
+PlayTone(430 ,80); Wait(150);
+
+PlayTone(380 ,80); Wait(600);
+
+PlayTone(660 ,100); Wait(150);
+
+PlayTone(660,100); Wait(300);
+
+PlayTone(660, 100); Wait(300);
+
+PlayTone(510 ,100); Wait(100);
+
+PlayTone(660 ,100); Wait(300);
+
+PlayTone(770 ,100); Wait(550);
+
+PlayTone(380, 100); Wait(575);
+
+  }
+
+void reverse(int reverseDistance, int distance_remembered) {
+      if (reverseDistance * 4 < (distance_remembered)) {
+        turnWheelsTo(9);
+        drive(-5);
+        turnWheelsTo(-9);
+     } else {
+        turnWheelsTo(-9);
+        drive(-5);
+        turnWheelsTo(9);
+     }
+
+}
+
+void park(bool headOrParallel, int parkDistance) {
+     if (headOrParallel == HEAD_IN_PARK) {
+        turnWheelsTo(-6);
+        drive(5);
+        turnWheelsTo(6);
+     } else {
+        if (5 * parkDistance <= (PARALLEL_LENGTH + PI*TURNING_RADIUS + ERROR)) {
+           turnWheelsTo(-7);
+           drive(-5);
+           turnWheelsTo(7);
+        } else {
+           turnWheelsTo(7);
+           drive(-5);
+           turnWheelsTo(-7);
+        }
+     }
+}
+
+void wiggle(int distance, bool state, int s_r) {
+     if(state==PARALLEL_PARK) {
+         Acquire(Mutex_Sensys4);
+         if(Touch){
+              Release(Mutex_Sensys4);
+              flag = false;
+              drive((1000 * distance/2)/1000);
+              turnWheelsTo(-8);
+              drive(-(450 * distance/2)/1000);
+              turnWheelsTo(8);
+              turnWheelsTo(8);
+              drive(-(350 * distance/2)/1000);
+              turnWheelsTo(-8);
+              /*
+              turnWheelsTo(-8);
+              drive((435 * distance/2)/1000);
+              turnWheelsTo(8);
+              drive((275 * distance/2)/1000);
+              turnWheelsTo(8);
+              drive((400 * distance/2)/1000);
+              turnWheelsTo(-8);
+              */
+         } else {
+              drive(-1);
+              flag = true;
+         }
+     } else {
+         if(2 * s_r <  distance - 2*ERROR){
+              drive(-CAR_LENGTH);
+              turnWheelsTo(4);
+              drive((3*CAR_LENGTH)/10);
+              turnWheelsTo(-4);
+              drive((3*CAR_LENGTH)/10);
+              turnWheelsTo(-4);
+              drive((3*CAR_LENGTH)/10);
+              turnWheelsTo(4);
+         } else if(2 * s_r > distance + 2*ERROR){
+              drive(-CAR_LENGTH);
+              turnWheelsTo(-3);
+              drive((3*CAR_LENGTH)/10);
+              turnWheelsTo(3);
+              drive((3*CAR_LENGTH)/10);
+              turnWheelsTo(3);
+              drive((3*CAR_LENGTH)/10);
+              turnWheelsTo(-3);
+         } else{
+              drive(1);
+         }
+     }
+}
+                         /*
+void siren(){
+             int d = s_r;
+             if(d <    */
+task main();
+
+// @TODO: Calibrate distances
+// @TODO: Implement reverse and park function
+// @TODO: Cap the turning (software limits)
+// @TODO: check on different surfaces
+
+task main() {
+
+     // start other tasks for low level control
+     start Sensys;
+     start Touchsys;
+     start Mario;
+  //   start Gyrosys;
+     
+     Wait(2000);
+     
+     // current state
+     int state = LOOKING;
+
+     // sensor values right, front, back&left
+     int s_f = 0;
+     int s_r = 0;
+     int s_bl = 0;
+
+     // global variables keeping state attributes
+     int distance_remembered = 0;
+     int distance_reversing = 0;
+     int park_distance = 0;
+     bool isParallel = HEAD_IN_PARK;
+     bool isHalfReversing = 0;
+
+     int count = 0;
+     
+     PlayTone(1047, 300);
+     
+     Wait(2000);
+
+
+
+     while (true) {
+
+
+           count++;
+           if (state == RESET) break;
+
+           // update sensors
+
+           ClearScreen();
+           Acquire(Mutex_Sensys1);
+           s_f = FRONT;
+           TextOut(0,LCD_LINE1,"front:");
+           NumOut(0,LCD_LINE2,s_f);
+           Release(Mutex_Sensys1);
+
+           Acquire(Mutex_Sensys2);
+           s_r = RIGHT;
+           TextOut(30,LCD_LINE1,"right:");
+           NumOut(30,LCD_LINE2,s_r);
+           Release(Mutex_Sensys2);
+
+         /*  Acquire(Mutex_Sensys4);
+           s_bl = GYRO;
+           TextOut(60,LCD_LINE1,"gyro");
+           NumOut(60,LCD_LINE2,s_bl);
+           Release(Mutex_Sensys4);
+           */
+           // print current State
+           TextOut(0, LCD_LINE3, "state: ");
+           NumOut(0, LCD_LINE4, state);
+           
+           TextOut(30, LCD_LINE3, "headorparallel:");
+           NumOut(30, LCD_LINE4, isParallel);
+           
+           TextOut(0 ,LCD_LINE5, "distanceremembered:");
+           NumOut(0, LCD_LINE6, distance_remembered);
+
+	         // state evolution
+	         // AUTOMATIC RESET (automatic stop)
+	         if ((s_r < 3 || s_f < 5) && (count > 10) && (state!=STOP && state!=PARK)) {
+              PlayTone(1047, 300);
+              state = RESET;
+           }
+
+           // state machine for head in parking
+           switch(state) {
+                 case RESET:
+			                // stop
+                      safe = true;
+                      break;
+                 case STOP:
+                      // stop
+                       if((s_r > 10 && isParallel ==PARALLEL_PARK) || (s_f > 10 && isParallel == HEAD_IN_PARK) ){
+                         // if(flag){break;}
+                          wiggle(distance_remembered,isParallel,s_r);
+                       } else {
+                          if (s_f < 10 || s_r < 10) {
+                             start Mario;
+                          } else {
+                            drive(1);
+                          }
+                       }
+                      break;
+                 case LOOKING:
+                      if ((s_r <= PARALLEL_DEPTH + 2 * ERROR) && (s_r >= CAR_WIDTH)) {
+                         // stop
+                         isParallel = PARALLEL_PARK;
+                         state = DETECTING;
+                      } else if ((s_r <= HEAD_IN_DEPTH + ERROR) && (s_r >= PARALLEL_DEPTH + ERROR)){
+                         isParallel = HEAD_IN_PARK;
+                         state = DETECTING;
+                      } else {
+                        drive(5);
+                      }
+                      break;
+                 case DETECTING:
+                      // HEAD_IN_PARKING
+                      if (distance_remembered >= ((HEAD_IN_WIDTH - CONCRETE_WIDTH)/2 + CONCRETE_WIDTH + ERROR) && (isParallel == HEAD_IN_PARK)) {
+                         // stop
+                         //distance_remembered = 0;
+                         state = ALIGNMENT;
+                      } else if ((s_r < (PARALLEL_DEPTH + ERROR)) && (isParallel == HEAD_IN_PARK)) {
+                         // stop
+                         distance_remembered = 0;
+                         state = LOOKING;
+
+                      // PARALLEL_PARKING
+                      } else if (distance_remembered >= (PARALLEL_LENGTH) && (isParallel == PARALLEL_PARK)) {
+                         // stop
+                         //distance_remembered = 0;
+                         state = ALIGNMENT;
+                      } else if ((s_r < (CAR_WIDTH) || s_r > PARALLEL_DEPTH + ERROR) && (isParallel == PARALLEL_PARK)) {
+                         // stop
+                         distance_remembered = 0;
+                         state = LOOKING;
+                      } else {
+                        drive(2);
+                        distance_remembered += 2;
+                      }
+			                break;
+                 case ALIGNMENT:
+                      if (2 * distance_reversing >= (distance_remembered + ERROR) && (isParallel == HEAD_IN_PARK)) {
+                         // stop
+                         drive((-3 * ERROR)-1);
+                         distance_reversing = 0;
+                         state = PARK;
+                      } else if (isParallel == PARALLEL_PARK) {
+                        // distance_reversing = 0;
+                         drive(CAR_LENGTH);
+                         state = PARK;
+                      } else {
+                         reverse(distance_reversing,distance_remembered);
+                         distance_reversing += 2;
+                      }
+                      break;
+                 case PARK:
+                      // should be if (park_distance >=  .5 * (HEAD_IN_DEPTH + (PI*TURNING_RADIUS) + ERROR) && !isParallel) {
+                      if ((2 * park_distance >= (HEAD_IN_DEPTH + (PI*TURNING_RADIUS))) && (isParallel == HEAD_IN_PARK)) {
+                         // stop
+                         // play mario
+                         PlayTone(1047, 300);
+                         state = STOP;
+                      } else if((2 * park_distance >= (PARALLEL_LENGTH + PI*TURNING_RADIUS/2)) && (isParallel == PARALLEL_PARK)) {
+                         // stop
+                         // play mario
+
+                         // **
+
+                         PlayTone(1047, 300);
+                         state = STOP;
+                      } else {
+                         park(isParallel, park_distance);
+                         if (isParallel == PARALLEL_PARK) {
+                            park_distance += 2;
+                         } else {
+                            park_distance += 3;
+                         }
+                      }
+			                break;
+          }
+   	}
+}
+
+

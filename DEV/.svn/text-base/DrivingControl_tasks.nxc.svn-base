@@ -1,0 +1,380 @@
+
+
+/* for driving */
+#define MOTOR_PORTS OUT_A
+#define DRIVING_POWER 50     	 // power level of the motors for driving (max: 100)
+#define MOTOR_CONFIG -1    		 // -1 for true forward, 1 for reverse (forward = backwards)
+#define ENGINE_MULTIPLIER 21 	 // based on car mechanics, how to multiple one degree of the servo to get a known distance in centimeters
+#define DRIVING_SAFETY_INCREMENT 1 	 // increment within safety loops, the smaller the increment, the more opportunity for "interrupts"
+#define ODOMETER_REVERSE     true     // if true, the odometer will decrease when the car drives in reverse
+#define FORWARD 1
+#define REVERSE (-1)
+#define CONTINUOUS 10000     // a very large number for distance
+
+/* for steering */
+#define STEERING_PORTS OUT_B
+#define TURNING_POWER 50      // power level of the motor for turning (max: 100)
+#define STEERING_CONFIG 1    	// 1 for direct control; -1 for the opposite (e.g. right -> positive turn angle, but turning motor "forward" = left)
+#define STEERING_MULTIPLIER 2 // based on car mechanics, how to multiple one degree of the servo to get a known distance in wheel degrees
+#define STEERING_PID_P 40     // proportional part of steering PID
+#define STEERING_PID_I 40			// integrative part of steering PID
+#define STEERING_PID_D 90			// derivative part of steering PID
+#define RIGHT 1
+#define LEFT (-1)
+
+/* misc */
+#define SUCCESS true
+#define FAILED false
+#define TONE_MIN 220
+#define TONE_MAX 8372
+#define ERR_FREQ 220        // error tone = low A
+#define AFF_FREQ 1047       // affirmative tone = middle-ish C
+#define TONE_DUR 300
+#define US_MIN 0
+#define US_MAX 255
+
+#define US_PORT IN_1
+
+//Global variables
+bool safe_hazard_flag = false;                 // flag used to "interrupt" low-level driving functions due to safety concern
+bool stop_driving_flag = false;                 // flag used to stop driving task: true to stop driving
+int odometer = 0;                // keeps track of total distance traveled by the car
+int wheelAngle = 0;          		 // keeps track of current absolute wheel angle of the   wheels
+int tractionCoefficient = 1;  	 // will be used in the next iteration to account for slippage (bad traction)
+
+int distanceToDrive;             // global variable so the drive_task() task knows how far to drive
+int desiredWheelAngle;           // global variable so the turnWheelsTo_task() task knows what angle to turn to
+
+/*****Function/Task Prototypes******/
+
+//Driving functions/tasks
+task drive_task();
+task turnWheelsTo_task();
+bool driveContinuous()
+bool stopDriving();
+
+
+//To be implemented later
+bool driveAndTurn(int distance, int endWheelAngle);    // drive a specific distance while linearly changing the wheel angle to endWheelAngle
+
+//Helper functions
+void playResult(bool testResult);
+
+//Misc test/diagnostic functions
+task playUSReading();
+bool testDriving(int rounds);
+bool testDrivingContinuous(int rounds);
+
+/****************************************************************************************
+main()
+------------------------
+just test the driving functions for now
+****************************************************************************************/
+task main() {
+
+		bool result = SUCCESS;      // play SUCCESS tone
+		playResult(result);
+		Wait(1000);
+		result = FAILED;	 					// play FAILED tone
+		playResult(result);
+		Wait(2000);
+	 int counter = 0;
+	 
+	 testDrivingContinuous(10);
+	 
+	 Wait(10000);
+		
+		  TextOut(0,LCD_LINE5,"in main                       ");
+		// test driving forward
+	/*	result =	driveContinuous();
+   TextOut(0,LCD_LINE5,"back in main              ");
+	 while (odometer != 84) {    // stop the car after X cm's
+			 Wait(50);
+	 }
+			 
+	 stopDriving();
+
+	 Wait(10000); */
+	 
+		//playResult(result);
+	/* while(!safe_hazard_flag && (counter < 10)) {
+  TextOut(0,LCD_LINE1,"wheelAngle");
+  NumOut(50,LCD_LINE1,wheelAngle);
+	 desiredWheelAngle = (-1) * desiredWheelAngle;
+  TextOut(0,LCD_LINE2,"desiredWheelAngle");
+  NumOut(50,LCD_LINE2,desiredWheelAngle);
+  
+  TextOut(0,LCD_LINE5,"in main                       ");
+	 playResult(true);
+	 start turnWheelsTo;
+	 Wait (2000);
+	 counter++;
+	 } //while */
+	 
+
+
+  //StopTask(drive);
+  //StopTask(playUSReading);
+  
+			/*
+			
+		// test driving backward
+		result = drive_task(-10);
+		playResult(result);
+		Wait (1000);
+
+		// try to "interrupt", though I'm not sure if the next two lines will be concurrent...
+		// (sometimes when I try to play two tones, the second call to play a tone cuts off the first)
+		result = drive_task(-20);
+		safe_hazard_flag = true;
+		playResult(result);
+		Wait (1000); */
+} //main
+
+
+
+bool driveContinuous() {
+     TextOut(0,LCD_LINE5,"in driveContinuous()       ");
+     Wait(500);
+		 distanceToDrive = CONTINUOUS;
+		 stop_driving_flag = false;
+		 start drive_task;
+		 Wait(1000);
+		 return true;
+
+} // driveContinuous()
+
+bool stopDriving() {    //go through the stop driving process
+
+     distanceToDrive = 0;          // zero the global variable
+	stop_driving_flag = true;     // set the flag for the drive function to stop looping
+	Off(MOTOR_PORTS);       // stop the motors ourselves (with braking so that the motors don't "float", i.e. so the car stops immediately)
+	while(MotorPower(MOTOR_PORTS) !=0) {   // don't return until we're sure the car is stopped
+	     Wait(50);
+	  } // while
+		return SUCCESS;
+} // stopDriving()
+
+
+/****************************************************************************************
+drive_task()
+------------------------
+*usage: drives the car a set distance (does not modify or care about wheel angle)
+*parameters:
+	distance: the amount to drive (in centimeters); positive value for forward, negative for reverse
+*modifies: odometer
+*returns: a boolean value indicating success (true), or false otherwise
+****************************************************************************************/
+task drive_task() {
+     TextOut(0,LCD_LINE5,"started drive_task");
+     Wait(500);
+		if (distanceToDrive == 0) Stop(true); // trivial case, don't need to do anything
+
+		int odometerSnapshot = odometer;   // create and initialize local variables
+		int degreesToDrive = 0;
+		int direction = 0;
+		int drivingPower = 0;
+		int absDistance = 0;
+
+		if (distanceToDrive > 0)
+			direction = FORWARD;
+			else direction = REVERSE;
+		absDistance = distanceToDrive * direction;
+		
+		  TextOut(0,LCD_LINE6,"distToDrive:");
+  		NumOut(60,LCD_LINE6,distanceToDrive);
+  
+  		 TextOut(0,LCD_LINE7,"absDistance:");
+  		 NumOut(60,LCD_LINE7,absDistance);
+		drivingPower = DRIVING_POWER  * direction * (MOTOR_CONFIG);  // calculations to ensure the sign is correct based on the direction and car configuration
+
+
+	 while ((!safe_hazard_flag) && (absDistance > 0) && !stop_driving_flag) {
+			if (absDistance > DRIVING_SAFETY_INCREMENT) {
+				degreesToDrive = ENGINE_MULTIPLIER * DRIVING_SAFETY_INCREMENT * tractionCoefficient;  // break distance up into smaller parts for safety
+				RotateMotorEx(MOTOR_PORTS, drivingPower, degreesToDrive, 0, false, false); // last parameter sets car to "float" the motor rather than braking abruptly
+				absDistance -= DRIVING_SAFETY_INCREMENT;
+				if (!safe_hazard_flag && !stop_driving_flag) {                             // if a flag is raised, don't change the odometer
+						if(ODOMETER_REVERSE) odometer += direction * DRIVING_SAFETY_INCREMENT; // if this feature is enabled, subtract the distance just traveled
+						  else odometer += DRIVING_SAFETY_INCREMENT;                           // otherwise, just normal odometer increasing
+		     }
+			} else {
+			degreesToDrive = ENGINE_MULTIPLIER * absDistance *tractionCoefficient;  		 // distance (remaining) is smaller than a safety increment
+				RotateMotor(MOTOR_PORTS, drivingPower, degreesToDrive);
+				if(ODOMETER_REVERSE) odometer += absDistance * direction;                              // if this feature is enabled, subtract the distance just traveled
+				  else odometer += absDistance;                                            // otherwise, just normal odometer increasing
+		    absDistance -= absDistance;
+			}
+			  TextOut(0,LCD_LINE4,"odometer:");
+  			NumOut(70,LCD_LINE4,odometer);
+	 } //while
+	distanceToDrive = 0; // reset this variable (is this the right place to do it?)
+	 /*if (absDistance > 0)                  // after we leave the safety loop, check if we drove as far as we're supposed to
+			 return FAILED; 									 // if not, the 'safe_hazard_flag' flag or 'stop_driving_flag' must have been raised
+			 else if (odometer != (odometerSnapshot + (distance * direction)))
+			 			return FAILED; 							 // sanity check did something else happen?
+			 else return SUCCESS; */
+
+} // drive_task()
+
+
+/****************************************************************************************
+bool turnWheelsTo_task(int desiredWheelAngle)
+---------------------------------------
+*usage: turns the wheel to an absolute wheel angle (where 0 is center/straight, and right and left are defined by #define constants above)
+*parameters:
+	desiredWheelAngle: the desired wheel angle in degrees.
+*modifies: wheelAngle
+*returns: a boolean value indicating success (true), or false otherwise
+****************************************************************************************/
+task turnWheelsTo_task() {
+  TextOut(0,LCD_LINE5,"started turnWheelsTo_task");
+	Wait(500);
+
+  
+
+	if (desiredWheelAngle == wheelAngle) Stop(true); // trivial case, don't need to do anything
+
+		int degreesToTurnWheels = desiredWheelAngle - wheelAngle;
+		int degreesToTurnMotor = 0;
+		int direction = 0;
+		int turningPower = 0;
+		int wheelAngleSnapshot = wheelAngle;
+
+		if (degreesToTurnWheels > 0)
+			direction = RIGHT;
+			else direction = LEFT;
+		turningPower = TURNING_POWER  * direction * (STEERING_CONFIG);  // calculations to ensure the sign is correct based on the direction and car configuration
+		degreesToTurnMotor = STEERING_MULTIPLIER * degreesToTurnWheels * direction; // translate the wheel degrees into motor degrees; always positive
+																																	 // direction of the turning handled the sign of the turningPower, not the degreesToTurnMotor
+		
+		//RotateMotorPID(STEERING_PORTS, turningPower, degreesToTurnMotor, STEERING_PID_P, STEERING_PID_I, STEERING_PID_D);       // do the turning
+		RotateMotor(STEERING_PORTS, turningPower, degreesToTurnMotor);
+  	//TextOut(0,LCD_LINE5,"turn completed");
+
+ Wait(500);
+
+		wheelAngle = wheelAngle + degreesToTurnWheels;         // update the wheelAngle variable
+
+
+		/* if (wheelAngle != (wheelAngleSnapshot + (degreesToTurnWheels * direction)))
+		 		return FAILED; // sanity check: did something happen?
+			 else return SUCCESS; */
+
+} // turnWheelsTo_task() task
+
+
+/****************************************************************************************
+bool driveAndTurn(int distance, int endWheelAngle);
+---------------------------------------------------
+*usage: drive a specific distance while linearly changing the (absolute) wheel angle to endWheelAngle (in degrees)
+*parameters:
+	distance: the total distance to drive (in centimeters)
+	endWheelAngle: the desired wheel angle (in degress) desired at the end of the distance driven
+*modifies: odometer, wheelAngle
+*returns: a boolean value indicating success (true), or false otherwise
+****************************************************************************************/
+bool driveAndTurn(distance, endWheelAngle) {
+return false;
+} // driveAndTurn() function
+
+
+
+
+void playResult(testResult) {
+	if (testResult == SUCCESS) {
+		 PlayTone(AFF_FREQ, TONE_DUR);
+		 } else {
+		 PlayTone(ERR_FREQ, TONE_DUR);
+		 }
+}
+
+task playUSReading() {
+	int reading = 0;
+	int toneFreq = 0;
+	int duration = 10;
+	SetSensorLowspeed(US_PORT);
+	while (true) {
+		reading = SensorUS(US_PORT);
+		if ((reading == US_MIN) || (reading == US_MAX)) {
+		 PlayTone(ERR_FREQ, duration);
+		 //Wait(duration);
+		 } else {
+		 	 toneFreq = (reading + 250) * 2;
+		 	 PlayTone(toneFreq, duration);
+		 	 //Wait(duration);
+		 	 } // else
+	 } // while
+}  //playUSReading task
+
+bool testDriving(rounds) {
+
+  TextOut(0,LCD_LINE5,"started testDriving()");
+	Wait(500);
+
+	 int distanceSum = 0;
+	 int result = SUCCESS;
+	 int result_accumulator = SUCCESS;
+	 int odometerSnapshot = 0;
+
+	 while (rounds != 0) {
+   			 TextOut(0,LCD_LINE2,"rounds to go:");
+  			NumOut(70,LCD_LINE2,rounds);
+			 odometerSnapshot = odometer;
+			 distanceToDrive = Random(10);
+			 distanceSum += distanceToDrive;
+			 TextOut(0,LCD_LINE3,"distanceSum");
+  			NumOut(70,LCD_LINE3,distanceSum);
+			 start drive_task;
+			 until (odometer == (odometerSnapshot + distanceToDrive));
+			rounds--;
+		 playResult(SUCCESS);
+			Wait(1000);
+		}
+	return SUCCESS;
+} // testDriving()
+
+bool testDrivingContinuous(rounds) {
+
+  TextOut(0,LCD_LINE5,"started testDrivingCoutinuous()");
+	Wait(500);
+	
+	 int distanceSum = 0;
+	 int distance = 0;
+	 int result = SUCCESS;
+	 int result_accumulator = SUCCESS;
+	 int odometerSnapshot = 0;
+	 
+	 while (rounds != 0) {
+   			 TextOut(0,LCD_LINE2,"rounds to go:");
+  			NumOut(70,LCD_LINE2,rounds);
+			 odometerSnapshot = odometer;
+			 //distance = 10;
+			 distance = Random(10);
+			  TextOut(0,LCD_LINE1,"distance:");
+  			NumOut(70,LCD_LINE1,distance);
+			 distanceSum += distance;
+			 TextOut(0,LCD_LINE3,"distanceSum");
+  			NumOut(70,LCD_LINE3,distanceSum);
+				driveContinuous();
+       until (odometer >= (odometerSnapshot + distance));
+			 stopDriving();
+			rounds--;
+			result = odometer == (odometerSnapshot + distance);
+			if (result) playResult(SUCCESS);
+				else playResult(FAILED);
+      Wait(1000);
+		 	result_accumulator = result_accumulator && result;
+			
+		}
+
+
+		playResult(result_accumulator);
+		Wait(500);
+    playResult(result_accumulator);
+		Wait(500);
+		playResult(result_accumulator);
+		Wait(1000);
+
+	return SUCCESS;
+} // testDriving()

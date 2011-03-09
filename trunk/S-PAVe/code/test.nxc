@@ -1,0 +1,164 @@
+/*
+  functions/variables that we can call
+  
+  Mutex_Sensys1
+  Mutex_Sensys2
+  Mutex_Sensys3
+  
+  bool drive(int distance);
+  bool turnWheelsTo(int desiredWheelAngle);
+
+  odometer
+  wheelAngle
+
+*/
+
+#define CAR_LENGTH 10
+#define CAR_WIDTH 5
+#define ERROR 3
+#define HEAD_IN_DEPTH 15
+#define HEAD_IN_WIDTH 7.5
+#define PARALLEL_DEPTH 7.5
+#define PARALLEL_LENGTH 12.5
+#define CONCRETE_WIDTH 2.5
+#define TURNING_RADIUS 4
+#define PI 3.1415
+
+typedef enum {
+	LOOKING,
+	DETECTING,
+	ALIGNMENT,
+	PARK,
+	STOP,
+	RESET
+} State;
+
+// Parking functions
+void reverse(bool headOrParallel);
+void park(bool headOrParallel);
+
+task main() {
+
+     // current state
+     State state = LOOKING;
+
+     // sensor values right, front, back&left
+     int s_r = 0;
+     int s_f = 0;
+     int s_bl = 0;
+     
+     // global variables keeping state attributes
+     int distance_remembered = 0;
+     int distance_reversing = 0;
+     int park_distance = 0;
+     bool headOrParallel = 0;
+
+     while (state != RESET) {
+
+           // update sensors
+      	   s_r = Mutex_Sensys1;
+       	   s_f = Mutex_Sensys2;
+        	 s_bl = Mutex_sensys3;
+
+	         // state evolution
+	         // AUTOMATIC RESET
+	         if (s_r < 5 || s_f < 5 || s_bl < 5) {
+		          state = RESET;
+           }
+
+           // state machine for head in parking
+           switch(state) {
+                 case RESET:
+			                // stop
+                      break;
+                 case STOP:
+                      // stop
+                      state = LOOKING;
+			                break;
+                 case LOOKING:
+                      if (s_r >= HEAD_IN_DEPTH) {
+                         // stop
+                         state = DETECTING;
+                      } else {
+                        drive(10);
+                      }
+                      break;
+                 case DETECTING:
+                      if (distance_remembered >= CAR_WIDTH + CONCRETE_WIDTH) {
+                         // stop
+                         state = ALIGNMENT;
+                      } else if (s_r < HEAD_IN_DEPTH) {
+                        // stop
+                        distance_remembered = 0;
+                        state = LOOKING;
+                      } else {
+                        drive(1);
+                        distance_remembered += 1;
+                      }
+			                break;
+                 case ALIGNMENT:
+                      if (distance_reversing >= (CAR_LENGTH + ERROR + HEAD_IN_WIDTH)) {
+                         // stop
+                         distance_reversing = 0;
+                         state = PARK;
+                      } else {
+                         reverse(1);
+                      }
+                      break;
+                 case PARK:
+                      if (park_distance >= .5 * (HEAD_IN_DEPTH + PI*TURNING_RADIUS + ERROR)) {
+                         // stop
+                         // play mario
+                      } else {
+                        park(1);
+                      }
+			                break;
+          }
+          
+          /*
+          // state machine for parallel parking
+          switch(state) {
+                 case RESET:
+			                // stop
+                      break;
+                 case STOP:
+                      // stop
+                      state = LOOKING;
+			                break;
+                 case LOOKING:
+                      if (s_r >= PARLLEL_DEPTH) {
+                         // stop
+                         state = DETECTING;
+                      } else {
+                        drive(10);
+                      }
+                      break;
+                 case DETECTING:
+                      if (distance_remembered >= CAR_LENGTH + ERROR) {
+                         // stop
+                         state = ALIGNMENT;
+                      } else if (s_r < PARALLEL_DEPTH) {
+                        // stop
+                        distance_remembered = 0;
+                        state = LOOKING;
+                      } else {
+                        drive(1);
+                        distance_remembered += 1;
+                      }
+			                break;
+                 case ALIGNMENT:
+                      reverse(0);
+                      state = PARK;
+                      break;
+                 case PARK:
+                      if (park_distance >= .5 * (PARALLEL_LENGTH + PI*TURNING_RADIUS + ERROR)) {
+                         // stop
+                         // play mario
+                      } else {
+                        park(0);
+                      }
+			                break;
+          }
+          */
+   	}
+}

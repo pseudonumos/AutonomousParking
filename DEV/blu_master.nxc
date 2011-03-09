@@ -1,0 +1,143 @@
+//MASTER
+#define BT_CONN 1
+#define OUTBOX 5
+#define INBOX 1
+#define CLEARLINE(L) TextOut(0,L,"                          ")
+
+
+//This function checks the bluetooth status. 
+
+void BTCheck(int conn)
+{
+ byte e;
+ e = BluetoothStatus(conn);
+ while(true)
+ {
+  CLEARLINE(LCD_LINE7);
+  if (e == NO_ERR)
+  {
+   break;
+  }
+  else if(e == STAT_COMM_PENDING)
+  {
+   TextOut(0,LCD_LINE8,"PENDING");
+   continue;
+  }
+  else if(e ==  ERR_COMM_CHAN_NOT_READY)
+  {
+   TextOut(0,LCD_LINE8,"UNCONNECTED");
+   stop(true);
+  }
+  else if(e == ERR_COMM_BUS_ERR)
+  {
+   TextOut(0,LCD_LINE8,"BUS ERROR");
+   stop(true);
+  }
+ }
+}
+
+//After every message sent, the SLAVE replies with 0xFF, which the is ACK. 
+//Do not proceed until ACK has been received, or times out after 3 seconds
+//CurrentTick() returns time in milliseconds
+sub ACK()
+{
+ long time1 = CurrentTick()/1000;
+ long time2 = time1+3;
+ int ack = 0;
+ while(ack!=0xFF || time2 == CurrentTick()/1000)
+ {
+    until(ReceiveRemoteNumber(INBOX,true,ack) == NO_ERR);
+ }
+ if (ack == 0xFF)
+ {
+  CLEARLINE(LCD_LINE3);
+  TextOut(0,LCD_LINE3,"SENT");
+ }
+ else
+ {
+  CLEARLINE(LCD_LINE3);
+  TextOut(0,LCD_LINE3,"ERROR: MESSAGE NOT SENT");
+ }
+}
+
+task BT();
+
+task main();
+
+task main()
+{
+ start BT;
+}
+
+
+//first checks for connection
+//in while loop, prints out simple UI
+//then detects button presses and takes appropriate action
+//see README for more information on what button does
+task BT()
+{
+ bool drive_state = true;
+ int ack;
+ int i;
+ BTCheck(BT_CONN);
+ TextOut(0,LCD_LINE8,"BLUETOOTH MASTER CONNECTED");
+ while(true)
+ {
+  if(drive_state == true)
+  {
+  CLEARLINE(LCD_LINE0);
+  CLEARLINE(LCD_LINE2);
+  TextOut(0,LCD_LINE0,"STATE: DRIVE");
+  TextOut(0,LCD_LINE2,"L: BACK");
+  TextOut(32,LCD_LINE2,"R: FORWARD");
+  }
+  else if(drive_state == false)
+  {
+  CLEARLINE(LCD_LINE0);
+  CLEARLINE(LCD_LINE2);
+  TextOut(0,LCD_LINE0,"STATE: TURN");
+  TextOut(0,LCD_LINE2,"L: LEFT");
+  TextOut(32,LCD_LINe2,"R: RIGHT");
+  }
+  
+  if (ButtonPressed(BTNRIGHT, false) == 1)
+  {
+   SendRemoteNumber(BT_CONN,OUTBOX,BTNRIGHT)
+   CLEARLINE(LCD_LINE3);
+   if (drive_state == true)
+   {
+    TextOut(0,LCD_LINE3,"SENDING DRIVE FORWARD");
+   } 
+   else if(drive_state == false)
+   {
+    TextOut(0,LCD_LINE3,"SENDING TURN LEFT");
+   }
+   ACK();
+  }
+  else if(ButtonPressed(BTNLEFT,false == 1)
+  {
+   SendRemoteNumber(BT_CONN,OUTBOX,BTNLEFT);
+   CLEARLINE(LCD_LINE3);
+   if (drive_state == true)
+   {
+    TextOut(0,LCD_LINE3,"SENDING DRIVE REVERSE");
+   }
+   else if(drive_state == false)
+   {
+    TextOut(0,LCD_LINE3,"SENDING TURN LEFT");
+   }
+   ACK();
+  }
+  else if(ButtonPressed(BTNCENTER,false) == 1)
+  {
+   SendRemoteNumber(BT_CONN,OUTBOX,BTNCENTER);
+   CLEARLINE(LCD_LINE3);
+   TextOut(0,LCD_LINE3,"SENDING STATE TRANSITION");   
+   ACK();
+  }
+ }
+}
+
+
+
+
